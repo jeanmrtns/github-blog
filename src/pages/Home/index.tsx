@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { api } from '../../lib/axios'
 import { AboutMe } from './components/AboutMe'
+
+import * as zod from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 interface Post {
   id: number
@@ -10,8 +17,17 @@ interface Post {
   body: string
 }
 
+const searchPostsSchema = zod.object({
+  query: zod.string(),
+})
+
+type SearchData = zod.infer<typeof searchPostsSchema>
+
 export function Home() {
   const [posts, setPosts] = useState<Post[]>([])
+  const { register, handleSubmit } = useForm<SearchData>({
+    resolver: zodResolver(searchPostsSchema),
+  })
 
   async function getPosts(query = '') {
     const { data } = await api.get(
@@ -23,6 +39,10 @@ export function Home() {
     setPosts(data.items)
   }
 
+  async function handleSearchPostsByName(data: SearchData) {
+    getPosts(data.query)
+  }
+
   useEffect(() => {
     getPosts()
   }, [])
@@ -31,15 +51,22 @@ export function Home() {
     <>
       <AboutMe />
       <section className="mt-16">
-        <form>
+        <form onSubmit={handleSubmit(handleSearchPostsByName)}>
           <div className="flex items-center justify-between">
             <strong className="text-lg text-base-subtitle">Publicações</strong>
-            <span className="text-base-span text-sm">6 publicações</span>
+            <span className="text-base-span text-sm">
+              {posts.length === 0
+                ? 'Ainda não há publicações'
+                : posts.length === 1
+                ? '1 publicação'
+                : `${posts.length} publicações`}
+            </span>
           </div>
           <input
             type="text"
             className="w-full mt-3 rounded text-base-text bg-base-input border border-base-border px-4 py-3 placeholder:text-base-label outline-none focus:border-blue hover:border-blue transition-all"
             placeholder="Buscar conteúdo"
+            {...register('query')}
           />
         </form>
 
@@ -56,10 +83,15 @@ export function Home() {
                   </strong>
                 </Link>
                 <time className="text-base-span text-xs md:text-sm">
-                  {post.created_at}
+                  {formatDistanceToNow(new Date(post.created_at), {
+                    addSuffix: true,
+                    locale: ptBR,
+                  })}
                 </time>
               </header>
-              <p className="mt-5">{post.body.slice(0, 300)}...</p>
+              <div className="mt-5">
+                <ReactMarkdown>{post.body.slice(0, 300)}</ReactMarkdown>
+              </div>
             </li>
           ))}
         </ul>
