@@ -5,12 +5,19 @@ interface Post {
   id: number
   title: string
   created_at: string
+  updated_at: string
   body: string
+  number: number
+  comments: number
+  user: {
+    login: string
+  }
 }
 
 interface GithubContextData {
   posts: Post[]
   getPosts: (query: string) => void
+  getPost: (number: number) => Promise<Post>
 }
 
 interface GithubProviderProps {
@@ -32,12 +39,22 @@ export function GithubProvider({ children }: GithubProviderProps) {
     setPosts(data.items)
   }
 
+  async function getPost(number: number) {
+    const url = `/repos/${import.meta.env.VITE_GITHUB_USER}/${
+      import.meta.env.VITE_GITHUB_REPO
+    }/issues/${number}`
+
+    const { data } = await api.get<Post>(url)
+
+    return data
+  }
+
   useEffect(() => {
     getPosts()
   }, [])
 
   return (
-    <GithubContext.Provider value={{ getPosts, posts }}>
+    <GithubContext.Provider value={{ getPosts, posts, getPost }}>
       {children}
     </GithubContext.Provider>
   )

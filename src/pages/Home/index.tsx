@@ -63,7 +63,7 @@ export function Home() {
                 className="p-8 bg-base-post rounded-lg h-64 overflow-hidden"
               >
                 <header className="flex flex-col md:flex-row md:items-center justify-between">
-                  <Link to={`articles/${post.id}`}>
+                  <Link to={`articles/${post.number}`}>
                     <strong className="text-xl text-base-title">
                       {post.title}
                     </strong>

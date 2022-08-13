@@ -5,3 +5,23 @@
 body {
   @apply bg-background text-base-text font-nunito overflow-y-auto;
 }
+
+.post a {
+  @apply text-blue hover:underline hover:underline-offset-4;
+}
+
+.post h3 {
+  @apply text-xl font-bold mt-4;
+}
+
+.post h4 {
+  @apply text-2xl font-bold mt-4;
+}
+
+.post strong {
+  @apply font-bold;
+}
+
+.post img {
+  @apply w-full;
+}
