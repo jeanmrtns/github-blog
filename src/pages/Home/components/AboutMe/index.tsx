@@ -1,5 +1,6 @@
 import { ArrowSquareOut, Buildings, GithubLogo, Users } from 'phosphor-react'
 import { useState, useEffect } from 'react'
+import { GITHUB_USER } from '../../../../constants'
 import { api } from '../../../../lib/axios'
 
 interface User {
@@ -17,9 +18,7 @@ export function AboutMe() {
 
   useEffect(() => {
     async function getUser() {
-      const response = await api.get<User>(
-        `/users/${import.meta.env.VITE_GITHUB_USER}`,
-      )
+      const response = await api.get<User>(`/users/${GITHUB_USER}`)
 
       setUser(response.data)
     }

@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useEffect, useState } from 'react'
+import { GITHUB_REPO, GITHUB_USER } from '../constants'
 import { api } from '../lib/axios'
 
 interface Post {
@@ -31,18 +32,14 @@ export function GithubProvider({ children }: GithubProviderProps) {
 
   async function getPosts(query = '') {
     const { data } = await api.get(
-      `/search/issues?q=${query}%20repo:${import.meta.env.VITE_GITHUB_USER}/${
-        import.meta.env.VITE_GITHUB_REPO
-      }`,
+      `/search/issues?q=${query}%20repo:${GITHUB_USER}/${GITHUB_REPO}`,
     )
 
     setPosts(data.items)
   }
 
   async function getPost(number: number) {
-    const url = `/repos/${import.meta.env.VITE_GITHUB_USER}/${
-      import.meta.env.VITE_GITHUB_REPO
-    }/issues/${number}`
+    const url = `/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${number}`
 
     const { data } = await api.get<Post>(url)
 
