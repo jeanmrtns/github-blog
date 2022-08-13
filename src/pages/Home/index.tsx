@@ -1,21 +1,14 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { api } from '../../lib/axios'
 import { AboutMe } from './components/AboutMe'
 
 import * as zod from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-
-interface Post {
-  id: number
-  title: string
-  created_at: string
-  body: string
-}
+import { useGithub } from '../../hooks/useGithub'
+import { LoadSpinner } from '../../components/LoadSpinner'
 
 const searchPostsSchema = zod.object({
   query: zod.string(),
@@ -24,28 +17,18 @@ const searchPostsSchema = zod.object({
 type SearchData = zod.infer<typeof searchPostsSchema>
 
 export function Home() {
-  const [posts, setPosts] = useState<Post[]>([])
-  const { register, handleSubmit } = useForm<SearchData>({
+  const { posts, getPosts } = useGithub()
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<SearchData>({
     resolver: zodResolver(searchPostsSchema),
   })
-
-  async function getPosts(query = '') {
-    const { data } = await api.get(
-      `/search/issues?q=${query}%20repo:${import.meta.env.VITE_GITHUB_USER}/${
-        import.meta.env.VITE_GITHUB_REPO
-      }`,
-    )
-
-    setPosts(data.items)
-  }
 
   async function handleSearchPostsByName(data: SearchData) {
     getPosts(data.query)
   }
-
-  useEffect(() => {
-    getPosts()
-  }, [])
 
   return (
     <>
@@ -70,31 +53,35 @@ export function Home() {
           />
         </form>
 
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-          {posts.map((post) => (
-            <li
-              key={post.id}
-              className="p-8 bg-base-post rounded-lg h-64 overflow-hidden"
-            >
-              <header className="flex flex-col md:flex-row md:items-center justify-between">
-                <Link to={`articles/${post.id}`}>
-                  <strong className="text-xl text-base-title">
-                    {post.title}
-                  </strong>
-                </Link>
-                <time className="text-base-span text-xs md:text-sm">
-                  {formatDistanceToNow(new Date(post.created_at), {
-                    addSuffix: true,
-                    locale: ptBR,
-                  })}
-                </time>
-              </header>
-              <div className="mt-5">
-                <ReactMarkdown>{post.body.slice(0, 300)}</ReactMarkdown>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {isSubmitting ? (
+          <LoadSpinner />
+        ) : (
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+            {posts.map((post) => (
+              <li
+                key={post.id}
+                className="p-8 bg-base-post rounded-lg h-64 overflow-hidden"
+              >
+                <header className="flex flex-col md:flex-row md:items-center justify-between">
+                  <Link to={`articles/${post.id}`}>
+                    <strong className="text-xl text-base-title">
+                      {post.title}
+                    </strong>
+                  </Link>
+                  <time className="text-base-span text-xs md:text-sm">
+                    {formatDistanceToNow(new Date(post.created_at), {
+                      addSuffix: true,
+                      locale: ptBR,
+                    })}
+                  </time>
+                </header>
+                <div className="mt-5">
+                  <ReactMarkdown>{post.body.slice(0, 300)}</ReactMarkdown>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   )
